@@ -3,19 +3,47 @@ import SeriesList from '../../components/SeriesList';
 
 class Series extends Component {
     state = {
-        series: []
+        series: [],
+        seriesName: '',
+        isFetching: false
     }
-    componentDidMount() {
-        fetch('http://api.tvmaze.com/search/shows?q=Vikings')
+
+    onSeriesInputChange = e => {
+        this.setState({ seriesName: e.target.value, isFetching: true });
+
+        fetch(`http://api.tvmaze.com/search/shows?q=${e.target.value}`)
           .then(response => response.json())
-          .then(json => this.setState({ series: json }))
+          .then(json => this.setState({ series: json, isFetching: false }))
     }
 
     render() {
+        const {series, seriesName, isFetching} = this.state;
+
         return (
             <div>
-                El largo del array es {this.state.series.length}
-                <SeriesList List={this.state.series} />
+                <div>
+                    <input
+                        value={seriesName}
+                        type="text"
+                        onChange={this.onSeriesInputChange} />
+                </div>
+                {
+                    series.length === 0 && seriesName.trim() === ''
+                    &&
+                    <p>Please enter a name of series.</p>
+                }
+                {
+                    series.length === 0 && seriesName.trim() !== ''
+                    &&
+                    <p>No TV series have been found with this name.</p>
+                }
+                {
+                    isFetching && <p>Loading...</p>
+                }
+                {
+                    !isFetching && <SeriesList List={this.state.series} />
+                }
+
             </div>
         )
     }
